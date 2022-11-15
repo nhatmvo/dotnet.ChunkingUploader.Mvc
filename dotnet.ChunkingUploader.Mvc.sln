@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet.ChunkingUploader.Mvc", "dotnet.ChunkingUploader\dotnet.ChunkingUploader.Mvc.csproj", "{65CEF69F-BAEA-40F7-BACC-A5A2B42BDDF8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{65CEF69F-BAEA-40F7-BACC-A5A2B42BDDF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65CEF69F-BAEA-40F7-BACC-A5A2B42BDDF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65CEF69F-BAEA-40F7-BACC-A5A2B42BDDF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65CEF69F-BAEA-40F7-BACC-A5A2B42BDDF8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BB81D4A-6FA7-458D-A940-9275C1F6D359}
+	EndGlobalSection
+EndGlobal

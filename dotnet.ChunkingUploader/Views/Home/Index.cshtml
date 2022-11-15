@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <form id="formData" onsubmit="return false">
+        <input type="file" id="fileInput" name="filename">
+        <input type="submit">
+    </form>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">  
+        $('#formData').submit(function(e){
+            let file = $('#fileInput').prop('files')[0]
+            let chunks = breakFileIntoChunks(file)
+            uploadFileChunks(file.name, chunks)
+            e.preventDefault()
+        })
+
+        function breakFileIntoChunks(file) {
+            let chunkSizeInKB = 5000
+            let fileChunks = [];
+            // since it's split a file by bytes, it depends to change naming measurement of chunkSizeIn(KB/MB/GB), and the buffer bytes will be change accordingly (1024, 1024*1024, 1024*1024*1024)
+            // in this example, we're converting KB -> bytes, thus it's number of kilobytes * 1024
+            let bufferChunksSizeInBytes = chunkSizeInKB * (1024)
+
+            let currentSplitBytePosition = 0;
+            let endPosition = bufferChunksSizeInBytes;
+
+            while (currentSplitBytePosition < file.size) {
+                fileChunks.push(file.slice(currentSplitBytePosition, endPosition))
+                currentSplitBytePosition = endPosition
+                endPosition = currentSplitBytePosition + bufferChunksSizeInBytes
+            }
+            return fileChunks
+        }
+
+        function uploadFileChunks(fileName, fileChunks) {
+            // Adding logic to handle either concurrecy or sequentially, in this case will handle it concurrecy since ajax call is asynchronous by default
+            let fileChunksSize = fileChunks.length
+            console.log("Jump into upload chunk function " + fileChunks.length)
+            console.log(fileName)
+            for (index = 0; index < fileChunksSize; index++) {
+                let formData = new FormData()
+                let chunk = { File: formData, FileName: fileName, Sequence: index, Total: 1 };
+                console.log(chunk)
+                formData.append('file', fileChunks[index], fileName)
+                formData.append('fileName', fileName)
+                formData.append('sequence', index)
+                formData.append('total', fileChunksSize)
+                $.ajax({
+                    type: "POST",
+                    url: "Home/UploadFile",
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    dataType: "json"
+                });
+            }
+        }
+
+    </script>  
+}
