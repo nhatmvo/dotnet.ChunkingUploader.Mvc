@@ -9,6 +9,7 @@ namespace dotnet.LargeFileUploader.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IFileStorageService _fileStorageService;
+        private const Int64 MaxFileSize = 2L * 1024L * 1024L * 1024L;
 
         public HomeController(ILogger<HomeController> logger,
             IFileStorageService fileStorageService)
@@ -34,13 +35,15 @@ namespace dotnet.LargeFileUploader.Controllers
         }
 
         [HttpPost]
-        public IActionResult UploadFile(IFormCollection formCollection)
+        [RequestSizeLimit(MaxFileSize)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaxFileSize)]
+        public JsonResult Index(IFormCollection formCollection)
         {
             var fileName = formCollection["fileName"].ToString();
             var sequence = Convert.ToInt32(formCollection["sequence"]);
             var total = Convert.ToInt32(formCollection["total"]);
             _fileStorageService.FormFileHandling(fileName, sequence, total, formCollection.Files.First());
-            return View();
+            return Json(new { sequence = sequence });
         }
     }
 }

@@ -13,6 +13,8 @@
 
 @section Scripts {
     <script type="text/javascript">  
+        var executionQueue = []
+
         $('#formData').submit(function(e){
             let file = $('#fileInput').prop('files')[0]
             let chunks = breakFileIntoChunks(file)
@@ -20,8 +22,52 @@
             e.preventDefault()
         })
 
+        function uploadFileChunks(fileName, fileChunks) {
+            let concurrentRequestNumber = 5 // change this value to adjust number of request to send concurrency
+            if (fileChunks.length < concurrentRequestNumber) {
+                concurrentRequestNumber = fileChunks.length
+            }
+            executionQueue = getChunksExecutionQueue(fileChunks, fileName)
+            console.log(executionQueue)
+            for (let i = 0; i < concurrentRequestNumber; i++) {
+                let execution = executionQueue.shift();
+                execution();
+            }
+        }
+
+        function getChunksExecutionQueue(fileChunks, fileName) {
+            let fileChunkSize = fileChunks.length
+            console.log("Creating chunks execution queue with size: ", fileChunkSize)
+            // Adding logic to handle either concurrecy or sequentially, in this case will handle it concurrecy since ajax call is asynchronous by default
+            return fileChunks.map((fc, i) => {
+                let formData = new FormData()
+                formData.append('file', fc, fileName)
+                formData.append('fileName', fileName)
+                formData.append('sequence', i)
+                formData.append('total', fileChunkSize)
+
+                return function() {
+                    console.log('Function has been execute.')
+                    $.ajax({
+                        type: "POST",
+                        url: "Home/Index",
+                        contentType: false,
+                        processData: false,
+                        data: formData,
+                        dataType: "json",
+                        success: function (i) {
+                            processNextQueueItem(i)
+                        },
+                        error: function (i) {
+                            retryAddToQueue(i)
+                        } 
+                    })
+                }
+            })
+        }
+
         function breakFileIntoChunks(file) {
-            let chunkSizeInKB = 5000
+            let chunkSizeInKB = 100 * 1024
             let fileChunks = [];
             // since it's split a file by bytes, it depends to change naming measurement of chunkSizeIn(KB/MB/GB), and the buffer bytes will be change accordingly (1024, 1024*1024, 1024*1024*1024)
             // in this example, we're converting KB -> bytes, thus it's number of kilobytes * 1024
@@ -38,28 +84,17 @@
             return fileChunks
         }
 
-        function uploadFileChunks(fileName, fileChunks) {
-            // Adding logic to handle either concurrecy or sequentially, in this case will handle it concurrecy since ajax call is asynchronous by default
-            let fileChunksSize = fileChunks.length
-            console.log("Jump into upload chunk function " + fileChunks.length)
-            console.log(fileName)
-            for (index = 0; index < fileChunksSize; index++) {
-                let formData = new FormData()
-                let chunk = { File: formData, FileName: fileName, Sequence: index, Total: 1 };
-                console.log(chunk)
-                formData.append('file', fileChunks[index], fileName)
-                formData.append('fileName', fileName)
-                formData.append('sequence', index)
-                formData.append('total', fileChunksSize)
-                $.ajax({
-                    type: "POST",
-                    url: "Home/UploadFile",
-                    contentType: false,
-                    processData: false,
-                    data: formData,
-                    dataType: "json"
-                });
+        function processNextQueueItem(seq, statusCode) {
+            console.log("Chunk upload success. Seq number: " , seq)
+            if (executionQueue.length != 0) {
+                console.log("Processing next chunk.")
+                let nextExecution = executionQueue.shift()
+                nextExecution()
             }
+        }
+
+        function retryAddToQueue(seq) {
+            console.log("Chunk upload failed. Sequence number: ", seq)
         }
 
     </script>  
